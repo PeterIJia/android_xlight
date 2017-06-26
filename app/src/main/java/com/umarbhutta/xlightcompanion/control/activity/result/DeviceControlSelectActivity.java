@@ -2,12 +2,15 @@ package com.umarbhutta.xlightcompanion.control.activity.result;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -53,6 +56,7 @@ public class DeviceControlSelectActivity extends BaseActivity {
     private TextView lampName;
     private View rl_scenario;
     private View colorLL;
+    private boolean isScrollView = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +85,8 @@ public class DeviceControlSelectActivity extends BaseActivity {
         colorLabel = (TextView) findViewById(R.id.colorLabel);
         lightImageView = (ImageView) findViewById(R.id.lightImageView);
         linear = (LinearLayout) findViewById(R.id.ll_horizontal_scrollview);
+        mHorizontalScrollView = (HorizontalScrollView) findViewById(R.id.hor_scroll_view);
+        mHorizontalScrollView.setSmoothScrollingEnabled(true);
         llBack = (LinearLayout) findViewById(R.id.ll_back);
         llBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,6 +191,17 @@ public class DeviceControlSelectActivity extends BaseActivity {
             public void onRangeChanged(RangeSeekBar view, float min, float max, boolean isFromUser) {
                 //
                 Log.e(TAG, "The brightness value is " + (int)min+"view.getCurrentRange()="+view.getCurrentRange()[0]);
+                if (!isFromUser) {
+                    if (isScrollView) {
+                        if (null != viewList && viewList.size() > 0) {
+                            viewList.get(0).callOnClick();
+                            mHorizontalScrollView.smoothScrollTo(0, 0);
+                        }
+
+                    } else {
+                        isScrollView = true;
+                    }
+                }
             }
         });
 //        brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -227,6 +244,15 @@ public class DeviceControlSelectActivity extends BaseActivity {
                 Log.d(TAG, "The CCT value is " + seekBar.getProgress() + 2700);
                 int seekBarProgress = seekBar.getProgress() + 2700;
 //                int cctInt = SlidingMenuMainActivity.m_mainDevice.ChangeCCT(seekBarProgress);
+                if (isScrollView) {
+                    if (null != viewList && viewList.size() > 0) {
+                        viewList.get(0).callOnClick();
+                            mHorizontalScrollView.smoothScrollTo(0, 0);
+                    }
+
+                } else {
+                    isScrollView = true;
+                }
             }
         });
 
@@ -253,7 +279,19 @@ public class DeviceControlSelectActivity extends BaseActivity {
 //        });
         initScenario();//初始化场景
     }
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int index = msg.arg1;
 
+            View cView = viewList.get(index);
+            int[] location = new int[2];
+            cView.getLocationOnScreen(location);
+//            Logger.i("left1 = " + location[0] + ", " + location[1]);
+            mHorizontalScrollView.scrollTo(location[0] - 100, 0);
+        }
+    };
 //    private static final String RINGALL_TEXT = "ALL RINGS";
 //    private static final String RING1_TEXT = "RING 1";
 //    private static final String RING2_TEXT = "RING 2";
@@ -275,6 +313,7 @@ public class DeviceControlSelectActivity extends BaseActivity {
     private LinearLayout llBack;
     private TextView btnSure;
     private LinearLayout linear;
+    private HorizontalScrollView mHorizontalScrollView;
 
     private LayoutInflater mInflater;
 
@@ -359,6 +398,15 @@ public class DeviceControlSelectActivity extends BaseActivity {
                     }
                     circleIcon.setColor(color);
                     colorTextView.setText("RGB(" + red + "," + green + "," + blue + ")");
+                    if (isScrollView) {
+                        if (null != viewList && viewList.size() > 0) {
+                            viewList.get(0).callOnClick();
+                            mHorizontalScrollView.smoothScrollTo(0, 0);
+                        }
+
+                    } else {
+                        isScrollView = true;
+                    }
                 }
                 break;
         }
@@ -452,6 +500,25 @@ public class DeviceControlSelectActivity extends BaseActivity {
             view.setOnClickListener(mSceneClick);
             linear.addView(view);
         }
+        linear.invalidate();
+
+//        if (deviceInfo.devicenodetype != 1 && !TextUtils.isEmpty(deviceInfo.scenarioId)) {
+////        if (deviceInfo.devicenodetype != 1) {//测试专用
+//            for (int i = 0; i < viewList.size(); i++) {
+//                if (i != 0 && deviceInfo.scenarioId.equals(String.valueOf(mDeviceInfoResult.rows.get(i - 1).id))) {
+////                if (i != 0 && "53".equals(String.valueOf(mDeviceInfoResult.rows.get(i - 1).id))) {
+//                    View cView = viewList.get(i);
+//                    cView.callOnClick();
+//
+//                    Message msg = Message.obtain();
+//                    msg.arg1 = i;
+//
+//                    handler.sendMessageDelayed(msg, 100);
+//                    break;
+//
+//                }
+//            }
+//        }
     }
 
     private Rows curSene = null;
@@ -466,6 +533,7 @@ public class DeviceControlSelectActivity extends BaseActivity {
             } else {
                 Rows sceneInfo = mDeviceInfoResult.rows.get(index - 1);
                 curSene = sceneInfo;
+                isScrollView = false;
                 updateSceneInfo(sceneInfo);
             }
 

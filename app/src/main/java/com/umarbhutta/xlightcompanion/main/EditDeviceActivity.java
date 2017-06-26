@@ -111,6 +111,7 @@ public class EditDeviceActivity extends BaseActivity implements View.OnClickList
     private RelativeLayout rl_scenario;
     private LinearLayout colorLL;
     private View line2;
+    private boolean isScrollView = true;
 
     private xltDevice mCurrentDevice;
     private HorizontalScrollView mHorizontalScrollView;
@@ -269,9 +270,14 @@ public class EditDeviceActivity extends BaseActivity implements View.OnClickList
                     Log.e(TAG, "brightnessInt value is= " + brightnessInt);
                     deviceInfo.brightness = (int) min;
 
-                    if (null != viewList && viewList.size() > 0) {
-                        viewList.get(0).callOnClick();
-                        mHorizontalScrollView.smoothScrollTo(0, 0);
+                    if (isScrollView) {
+                        if (null != viewList && viewList.size() > 0) {
+                            viewList.get(0).callOnClick();
+                            mHorizontalScrollView.smoothScrollTo(0, 0);
+                        }
+
+                    } else {
+                        isScrollView = true;
                     }
                 }
             }
@@ -327,10 +333,13 @@ public class EditDeviceActivity extends BaseActivity implements View.OnClickList
                 int seekBarProgress = seekBar.getProgress() + 2700;
                 int cctInt = mCurrentDevice.ChangeCCT(seekBarProgress);
                 Log.e(TAG, "cctInt value is= " + cctInt);
-
-                if (null != viewList && viewList.size() > 0) {
-                    viewList.get(0).callOnClick();
-                    mHorizontalScrollView.smoothScrollTo(0, 0);
+                if (isScrollView) {
+                    if (null != viewList && viewList.size() > 0) {
+                        viewList.get(0).callOnClick();
+                        mHorizontalScrollView.smoothScrollTo(0, 0);
+                    }
+                } else {
+                    isScrollView = true;
                 }
             }
         });
@@ -643,6 +652,7 @@ public class EditDeviceActivity extends BaseActivity implements View.OnClickList
             } else {
                 Rows sceneInfo = mDeviceInfoResult.rows.get(index - 1);
                 curSene = sceneInfo;
+                isScrollView = false;
                 updateSceneInfo(sceneInfo);
             }
 
@@ -821,6 +831,14 @@ public class EditDeviceActivity extends BaseActivity implements View.OnClickList
             mCurrentDevice.setRed(xltDevice.RING_ID_ALL, red);
             mCurrentDevice.setGreen(xltDevice.RING_ID_ALL, green);
             mCurrentDevice.setBlue(xltDevice.RING_ID_ALL, blue);
+            if (isScrollView) {
+                if (null != viewList && viewList.size() > 0) {
+                    viewList.get(0).callOnClick();
+                    mHorizontalScrollView.smoothScrollTo(0, 0);
+                }
+            } else {
+                isScrollView = true;
+            }
         }
     }
 }
